@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { type DataFrame, type TimeRange } from '@grafana/data';
+import { LegendDisplayMode } from '@grafana/schema';
 import { useTheme2 } from '@grafana/ui';
 import { hasVisibleLegendSeries, PlotLegend, type UPlotConfigBuilder } from '@grafana/ui/internal';
 import { type TimeSeriesLegendOptions } from 'app/plugins/panel/timeseries/panelcfg.gen';
@@ -41,7 +42,14 @@ export function TimeSeries(props: TimeSeriesProps) {
 
   const renderLegend = useCallback(
     (uPlotConfig: UPlotConfigBuilder) => {
-      if (!uPlotConfig || (legend && !legend.showLegend) || !hasVisibleLegendSeries(uPlotConfig, frames)) {
+      // Returning a legend element for a hidden display mode would reserve a zero-height legend slot
+      // in VizLayout, which never resolves a size and prevents the plot from rendering.
+      if (
+        !uPlotConfig ||
+        (legend && !legend.showLegend) ||
+        legend?.displayMode === LegendDisplayMode.Hidden ||
+        !hasVisibleLegendSeries(uPlotConfig, frames)
+      ) {
         return null;
       }
 
